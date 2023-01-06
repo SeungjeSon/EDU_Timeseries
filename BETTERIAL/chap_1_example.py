@@ -3,9 +3,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.linear_model import LinearRegression
+from pathlib import Path
 
-df = pd.read_csv("C:\SON\project\EDU_Timeseries\EDU_Timeseries\BETTERIAL\input/pressure_data.csv").drop('Time', axis=1).drop('pass', axis=1)
-df['Time'] = np.arange(len(df.index))
+data_dir = Path("./input")
+df = pd.read_csv(data_dir / "220906_PT_A_99_0.csv").drop("Time", axis=1).drop("Pressure2", axis=1).drop("Pressure3", axis=1).drop("pass", axis=1)
+
+drop_params = df[df.Pressure1!=100].index
+df.drop(drop_params, inplace=True)
+
+
 
 # plt.style.use("seaborn-whitegrid")
 plt.rc("figure", autolayout=True, figsize=(11,4), titlesize=18, titleweight='bold')
