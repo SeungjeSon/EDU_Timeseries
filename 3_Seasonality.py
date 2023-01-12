@@ -75,17 +75,17 @@ tunnel = pd.read_csv(data_dir / "tunnel.csv", parse_dates=["Day"])
 tunnel = tunnel.set_index("Day").to_period("D")
 
 X = tunnel.copy()
-# days within a week
-X["day"] = X.index.dayofweek
-X["week"] = X.index.week
-
-# days within a year
-X["dayofyear"] = X.index.dayofyear
-X["year"] = X.index.year
-fig, (ax0, ax1, ax2) = plt.subplots(3, 1, figsize=(11, 6))
-seasonal_plot(X, y="NumVehicles", period="week", freq="day", ax=ax0)
-seasonal_plot(X, y="NumVehicles", period="year", freq="dayofyear", ax=ax1)
-plot_periodogram(tunnel.NumVehicles, ax=ax2)
+# # days within a week
+# X["day"] = X.index.dayofweek
+# X["week"] = X.index.week
+#
+# # days within a year
+# X["dayofyear"] = X.index.dayofyear
+# X["year"] = X.index.year
+# fig, (ax0, ax1, ax2) = plt.subplots(3, 1, figsize=(11, 6))
+# seasonal_plot(X, y="NumVehicles", period="week", freq="day", ax=ax0)
+# seasonal_plot(X, y="NumVehicles", period="year", freq="dayofyear", ax=ax1)
+# plot_periodogram(tunnel.NumVehicles, ax=ax2)
 # plt.show()
 
 fourier = CalendarFourier(freq="A", order=10)
@@ -93,3 +93,17 @@ fourier = CalendarFourier(freq="A", order=10)
 dp = DeterministicProcess(index=tunnel.index, constant=True, order=1, seasonal=True, additional_terms=[fourier], drop=True)
 
 X = dp.in_sample()
+y = tunnel["NumVehicles"]
+
+model = LinearRegression(fit_intercept=False)
+_ = model.fit(X, y)
+
+y_pred = pd.Series(model.predict(X), index=y.index)
+X_fore = dp.out_of_sample(steps=90)
+y_fore = pd.Series(model.predict(X_fore), index=X_fore.index)
+
+ax = y.plot(color="0.25", style=".", title = "Tunnel Traffic - Seasonal Forecast")
+ax = y_pred.plot(ax=ax, label="Seasonal")
+ax = y_fore.plot(ax=ax, label="Seasonal Forecast", color='C3')
+_ = ax.legend()
+plt.show()
